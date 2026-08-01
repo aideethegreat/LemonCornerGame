@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lemon Corner - Game</title>
+    <link rel="icon" type="image/png" href="../images/lemoncornericon.png" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="../images/lemoncornericon.png"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/dialogue.css" />
+    <link rel="stylesheet" href="../css/story.css" />
+  </head>
+  <body>
+    <div id="game-placeholder" class="game-canvas">
+      <!-- Decorative scalloped awning strip, sitting behind the
+         top-left/top-right buttons and (eventually) the closed sign
+         graphic. Purely visual — clicks pass through it. -->
+      <img
+        id="shop-awning"
+        src="../images/shop-awning.png"
+        alt=""
+        draggable="false"
+      />
+
+      <!-- Dusk background art that crossfades in behind the whole scene
+         once only a couple customers are left for the day (see
+         triggerDusk in story.js) — swaps the daytime backdrop for this
+         sunset version of the stand. Purely visual — clicks pass
+         through it. Sits just above the base game-background.png but
+         below everything else (sign, awning, stand items, etc.). -->
+      <img
+        id="dusk-background"
+        src="../images/dusk-background.png"
+        alt=""
+        draggable="false"
+      />
+
+      <!-- top-left stack: menu button above trivia button -->
+      <div id="top-left-buttons">
+        <button id="menu-button" class="icon-button">
+          <span class="fallback-text">☰</span>
+          <img src="../images/menu-button.png" alt="Menu" draggable="false" />
+        </button>
+        <button id="trivia-button" class="icon-button">
+          <span class="fallback-text">?</span>
+          <img
+            src="../images/trivia-button.png"
+            alt="Trivia"
+            draggable="false"
+          />
+        </button>
+      </div>
+
+      <!-- top-right: lemon stock + coins side by side, shop button below them -->
+      <div id="top-right-area">
+        <div id="top-right-stats">
+          <div class="stat-display" id="lemon-stock-display">
+            <img
+              src="../images/lemon-stock.png"
+              alt="Lemon stock"
+              draggable="false"
+            />
+            <span class="stat-text" id="lemon-stock-text">0</span>
+          </div>
+          <div class="stat-display" id="coins-display">
+            <img src="../images/coins.png" alt="Coins" draggable="false" />
+            <span class="stat-text" id="coins-text">$10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- bottom-right: lemonade stand items. Table sits furthest back,
+         then pitcher, then cups on top of it, then the lemon design in
+         front of everything. Positions/sizes are separated below so
+         you can adjust each freely. -->
+      <img
+        id="table-decor"
+        class="stand-item"
+        src="../images/table.png"
+        alt=""
+        draggable="false"
+      />
+      <img
+        id="pitcher-btn"
+        class="stand-item clickable-item"
+        src="../images/emptypitcher.png"
+        alt="Pitcher"
+        draggable="false"
+      />
+      <img
+        id="cups-btn"
+        class="stand-item clickable-item"
+        src="../images/cupracks.png"
+        alt="Cup rack"
+        draggable="false"
+      />
+      <img
+        id="lemonfront-decor"
+        class="stand-item"
+        src="../images/lemonfront.png"
+        alt=""
+        draggable="false"
+      />
+      <!-- Empty cups placed on the table as the player clicks the cup
+         rack while filling an order (see serveCupForOrder in
+         story.js) — fills left-to-right, up to 3 per order. Cleared
+         and rebuilt for each new customer. -->
+      <div id="served-cups"></div>
+      <!-- Open/Closed sign. Starts on the "closed" art; clicking it
+         flips it to "open" (see sign-btn handler in story.js), which
+         is what actually kicks off Day 1 (the "Day 1" banner). -->
+      <img
+        id="sign-btn"
+        class="stand-item clickable-item"
+        src="../images/sign-closed.png"
+        alt="Open sign"
+        draggable="false"
+      />
+
+      <!-- ================================
+         CUSTOMER + ORDER BUBBLE
+         Holds whichever customer is currently at the counter. Starts
+         off-screen below; showCustomer() in story.js swaps in the
+         sprite, slides it up into view, then pops the order bubble
+         in above their head a beat later. CU1 (below) is the
+         tutorial customer that shows up right after Day 1 starts.
+         ================================ -->
+      <div id="customer-slot">
+        <img id="customer-sprite" src="" alt="" draggable="false" />
+        <div id="order-bubble">
+          <span id="order-bubble-text"></span>
+        </div>
+      </div>
+
+      <!-- ================================
+         DIALOGUE SYSTEM
+         Hidden by default. dialogue.js shows/hides this and fills
+         in the name + text. The whole game screen behind it dims
+         and blurs while this is visible (see dialogue.css).
+         ================================ -->
+      <div id="dialogue-overlay">
+        <img id="dialogue-portrait" src="" alt="" draggable="false" />
+        <div id="dialogue-box">
+          <img src="../images/dialoguebox.png" alt="" draggable="false" />
+          <div id="dialogue-name"></div>
+          <div id="dialogue-text"></div>
+        </div>
+      </div>
+
+      <!-- ================================
+         PITCHER POPUP
+         Opens when the player clicks the pitcher. Shows current lemon
+         stock and lets them try to fill it, or buy more lemons.
+         ================================ -->
+      <div id="pitcher-popup" class="popup-overlay">
+        <div class="popup-box" id="pitcher-popup-box">
+          <button
+            class="popup-close"
+            id="pitcher-popup-close"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          <h2 class="popup-title">Pitcher</h2>
+          <div class="popup-stock-row">
+            <span>Lemon Stock:</span>
+            <span id="pitcher-popup-stock">0</span>
+            <span>🍋</span>
+          </div>
+          <div class="popup-buttons">
+            <button id="fill-pitcher-btn" class="popup-btn">
+              Fill Pitcher
+            </button>
+            <button
+              id="buy-lemons-btn"
+              class="popup-btn popup-btn-secondary"
+              hidden
+            >
+              🍋 Buy Lemons
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         LEMON SHOP POPUP
+         Opens from "Buy Lemons". Two stores, same lemon count,
+         different prices.
+         ================================ -->
+      <div id="shop-popup" class="popup-overlay">
+        <div class="popup-box popup-box-shop-template" id="shop-popup-box">
+          <div class="shop-template-wrap">
+            <img
+              class="shop-template-bg"
+              src="../images/shops/lemon-shop-bg.png"
+              alt=""
+              draggable="false"
+            />
+
+            <button
+              class="shop-template-close"
+              id="shop-popup-close"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+
+            <div class="shop-overlay shop-inventory-overlay">
+              Your Lemons: <span id="shop-popup-lemon-stock">0</span>
+            </div>
+
+            <div class="shop-overlay shop-ribbon-text shop-ribbon-left">
+              Sunny Farm
+            </div>
+            <div class="shop-overlay shop-ribbon-text shop-ribbon-right">
+              Golden Orchard
+            </div>
+
+            <div class="shop-overlay shop-quality shop-quality-left">
+              ⭐ Basic
+            </div>
+            <div class="shop-overlay shop-quality shop-quality-right">
+              ⭐⭐⭐ Premium
+            </div>
+
+            <div
+              class="shop-overlay shop-offer shop-offer-left-lemon"
+              id="shop-offer-left-lemon"
+            >
+              5 Lemons
+            </div>
+            <div
+              class="shop-overlay shop-offer shop-offer-left-price"
+              id="shop-offer-left-price"
+            >
+              $10
+            </div>
+            <div
+              class="shop-overlay shop-offer shop-offer-right-lemon"
+              id="shop-offer-right-lemon"
+            >
+              5 Lemons
+            </div>
+            <div
+              class="shop-overlay shop-offer shop-offer-right-price"
+              id="shop-offer-right-price"
+            >
+              $15
+            </div>
+
+            <div class="shop-overlay shop-desc shop-desc-left">
+              Freshly harvested today.
+            </div>
+            <div class="shop-overlay shop-desc shop-desc-right">
+              Sweeter, premium-picked lemons.
+            </div>
+
+            <button
+              class="store-buy-btn store-buy-btn-image store-buy-btn-image-left"
+              data-store="sunny"
+            >
+              <img src="../images/buy-button.png" alt="Buy" draggable="false" />
+            </button>
+            <button
+              class="store-buy-btn store-buy-btn-image store-buy-btn-image-right"
+              data-store="golden"
+            >
+              <img src="../images/buy-button.png" alt="Buy" draggable="false" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         CUP SHOP POPUP
+         Opens when the player clicks the cups. Two stores, same cup
+         count, different prices — same compare-and-choose idea as
+         the lemon shop above.
+         ================================ -->
+      <div id="cup-shop-popup" class="popup-overlay">
+        <div class="popup-box popup-box-shop-template" id="cup-shop-popup-box">
+          <div class="shop-template-wrap">
+            <img
+              class="shop-template-bg"
+              src="../images/shops/cup-shop-bg.png"
+              alt=""
+              draggable="false"
+            />
+
+            <button
+              class="shop-template-close"
+              id="cup-shop-popup-close"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+
+            <div class="shop-overlay shop-inventory-overlay">
+              Stock up for the stand!
+            </div>
+
+            <div class="shop-overlay shop-ribbon-text shop-ribbon-left">
+              Party Supplies Co.
+            </div>
+            <div class="shop-overlay shop-ribbon-text shop-ribbon-right">
+              Deluxe Dinnerware
+            </div>
+
+            <div class="shop-overlay shop-quality shop-quality-left">
+              ⭐ Basic
+            </div>
+            <div class="shop-overlay shop-quality shop-quality-right">
+              ⭐⭐⭐ Premium
+            </div>
+
+            <div
+              class="shop-overlay shop-offer shop-offer-left-lemon"
+              id="cup-shop-offer-left-lemon"
+            >
+              10 Cups
+            </div>
+            <div
+              class="shop-overlay shop-offer shop-offer-left-price"
+              id="cup-shop-offer-left-price"
+            >
+              $5
+            </div>
+            <div
+              class="shop-overlay shop-offer shop-offer-right-lemon"
+              id="cup-shop-offer-right-lemon"
+            >
+              10 Cups
+            </div>
+            <div
+              class="shop-overlay shop-offer shop-offer-right-price"
+              id="cup-shop-offer-right-price"
+            >
+              $8
+            </div>
+
+            <div class="shop-overlay shop-desc shop-desc-left">
+              Simple paper cups!
+            </div>
+            <div class="shop-overlay shop-desc shop-desc-right">
+              Sturdy, fancy cups!
+            </div>
+
+            <button
+              class="cup-store-buy-btn store-buy-btn-image cup-buy-btn-image-left"
+              data-cupstore="party"
+            >
+              <img src="../images/buy-button.png" alt="Buy" draggable="false" />
+            </button>
+            <button
+              class="cup-store-buy-btn store-buy-btn-image cup-buy-btn-image-right"
+              data-cupstore="deluxe"
+            >
+              <img src="../images/buy-button.png" alt="Buy" draggable="false" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         TRIVIA — QUIZ POPUP
+         Opens when the player clicks the Trivia button. A short money
+         lesson plays first (see startTrivia in story.js), then this
+         popup shows the question. Correct answers reward coins; wrong
+         answers get a hint and the SAME question reopens so the player
+         can try again.
+         ================================ -->
+      <div id="trivia-quiz-popup" class="popup-overlay">
+        <div class="popup-box popup-box-wide" id="trivia-quiz-popup-box">
+          <h2 class="popup-title">Money Quiz!</h2>
+          <p class="popup-quiz-question" id="trivia-quiz-question"></p>
+          <div class="popup-buttons" id="trivia-quiz-choices"></div>
+        </div>
+      </div>
+
+      <!-- ================================
+         MARICE — QUIZ POPUP
+         Opens when the player can't afford any cups. No close button on
+         purpose: the story only continues once the question is answered
+         correctly (see story.js). Wrong answers show a hint and let the
+         player try again.
+         ================================ -->
+      <div id="marice-quiz-popup" class="popup-overlay">
+        <div class="popup-box popup-box-wide" id="marice-quiz-popup-box">
+          <h2 class="popup-title">Marice's Homework</h2>
+          <p class="popup-quiz-question" id="marice-quiz-question"></p>
+          <div class="popup-buttons" id="marice-quiz-choices"></div>
+        </div>
+      </div>
+
+      <!-- ================================
+         MARICE — REWARD POPUP
+         Opens once the quiz is answered correctly. Player picks one:
+         free cups or free lemons.
+         ================================ -->
+      <div id="marice-reward-popup" class="popup-overlay">
+        <div class="popup-box" id="marice-reward-popup-box">
+          <h2 class="popup-title">Marice's Thanks</h2>
+          <p>Nice work! Pick your free reward:</p>
+          <div class="popup-buttons">
+            <button id="marice-reward-cups-btn" class="popup-btn">
+              🥤 Free Cups
+            </button>
+            <button
+              id="marice-reward-lemons-btn"
+              class="popup-btn popup-btn-secondary"
+            >
+              🍋 Free Lemons
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         MARICE — FREE LEMONADE OFFER
+         Only shown if the reward left the player with BOTH a full
+         pitcher and cups in hand (see afterMariceReward in story.js).
+         ================================ -->
+      <div id="marice-lemonade-popup" class="popup-overlay">
+        <div class="popup-box" id="marice-lemonade-popup-box">
+          <h2 class="popup-title">One For Marice?</h2>
+          <p>Want to give Marice a free cup of lemonade?</p>
+          <div class="popup-buttons">
+            <button id="marice-lemonade-yes-btn" class="popup-btn">
+              Sure, here you go!
+            </button>
+            <button
+              id="marice-lemonade-no-btn"
+              class="popup-btn popup-btn-secondary"
+            >
+              Not this time
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ================================
+         DAY SUMMARY POPUP
+         Shown once the sign is flipped from Open back to Closed at
+         the end of the day (see trySignClose/showDaySummary in
+         story.js). Recaps the day's numbers. No close button on
+         purpose — "Start Next Day" is the only way out, and it kicks
+         off the next day via trySignOpen.
+         ================================ -->
+      <div id="day-summary-popup" class="popup-overlay">
+        <div class="popup-box" id="day-summary-popup-box">
+          <h2 class="popup-title" id="day-summary-title">Day 1 Summary</h2>
+          <div class="day-summary-row">
+            <span>Customers Served</span>
+            <span id="day-summary-customers">0</span>
+          </div>
+          <div class="day-summary-row">
+            <span>Cups Sold</span>
+            <span id="day-summary-cups">0</span>
+          </div>
+          <div class="day-summary-row">
+            <span>Earned Today</span>
+            <span id="day-summary-earned">$0</span>
+          </div>
+          <div class="day-summary-row">
+            <span>Lemons Left</span>
+            <span id="day-summary-lemons">0 🍋</span>
+          </div>
+          <div class="day-summary-row day-summary-total">
+            <span>Total Coins</span>
+            <span id="day-summary-total-coins">$0</span>
+          </div>
+          <div class="popup-buttons">
+            <button id="day-summary-next-btn" class="popup-btn">
+              Start Next Day
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         MENU POPUP
+         Opens when the player clicks the top-left menu button. Every
+         option here routes through story.js — most of them (leaving,
+         resetting, switching character) confirm first via the generic
+         confirm popup below since they affect progress.
+         ================================ -->
+      <div id="menu-popup" class="popup-overlay">
+        <div class="popup-box" id="menu-popup-box">
+          <button
+            class="popup-close"
+            id="menu-popup-close"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          <h2 class="popup-title">Menu</h2>
+          <div class="popup-buttons">
+            <button id="menu-home-btn" class="popup-btn popup-btn-secondary">
+              🏠 Back to Home
+            </button>
+            <button id="menu-reset-btn" class="popup-btn popup-btn-secondary">
+              🔄 Reset to Day 1
+            </button>
+            <button
+              id="menu-tutorial-btn"
+              class="popup-btn popup-btn-secondary"
+            >
+              📖 Review Tutorial
+            </button>
+            <button
+              id="menu-rename-btn"
+              class="popup-btn popup-btn-secondary"
+            >
+              ✏️ Rename Character
+            </button>
+            <button
+              id="menu-change-character-btn"
+              class="popup-btn popup-btn-secondary"
+            >
+              🧑‍🤝‍🧑 Change Character
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         GENERIC CONFIRM POPUP
+         Reused by any menu option that needs a "are you sure?" step
+         (see askConfirm in story.js) instead of one bespoke popup per
+         action.
+         ================================ -->
+      <div id="confirm-popup" class="popup-overlay">
+        <div class="popup-box" id="confirm-popup-box">
+          <h2 class="popup-title" id="confirm-popup-title">Are you sure?</h2>
+          <p id="confirm-popup-text"></p>
+          <div class="popup-buttons">
+            <button id="confirm-popup-yes-btn" class="popup-btn">Yes</button>
+            <button
+              id="confirm-popup-no-btn"
+              class="popup-btn popup-btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         RENAME POPUP
+         Opens from the menu's "Rename Character" option. Saves the new
+         name to localStorage and reloads so dialogue.js/story.js pick
+         it up fresh (see openRenamePopup in story.js).
+         ================================ -->
+      <div id="rename-popup" class="popup-overlay">
+        <div class="popup-box" id="rename-popup-box">
+          <button
+            class="popup-close"
+            id="rename-popup-close"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          <h2 class="popup-title">Rename Character</h2>
+          <input
+            type="text"
+            id="rename-popup-input"
+            class="popup-text-input"
+            maxlength="16"
+            placeholder="Enter a new name"
+          />
+          <div class="popup-buttons">
+            <button id="rename-popup-save-btn" class="popup-btn">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================
+         DAY BANNER
+         Big "Day X" title card. Shown once the sign gets flipped from
+         Closed to Open (see showDayBanner in story.js) — fades in on
+         its own, holds a moment, then fades back out. No button, not
+         click-to-dismiss.
+         ================================ -->
+      <div id="day-banner">
+        <div id="day-banner-text"></div>
+      </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/dialogue.js"></script>
+    <script src="../js/story.js"></script>
+  </body>
+</html>

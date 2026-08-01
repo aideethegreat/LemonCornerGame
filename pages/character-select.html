@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lemon Corner - Choose Your Character</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <div id="select-screen" class="game-canvas">
+
+    <button id="back-button">
+      <span id="back-button-text">← Back to menu</span>
+      <img id="back-button-img" src="../images/back-button.png" alt="Back to menu" draggable="false">
+    </button>
+
+    <h1>What's your name?</h1>
+    <input type="text" id="player-name" placeholder="Type your name here..." maxlength="7">
+
+    <h1>Choose your character</h1>
+
+    <div id="character-options">
+      <div class="character-card" data-character="boy">
+        <img src="../images/finn-card.png" alt="Finn" draggable="false">
+      </div>
+
+      <div class="character-card" data-character="girl">
+        <img src="../images/lena-card.png" alt="Lena" draggable="false">
+      </div>
+    </div>
+
+    <button id="confirm-button" disabled>Let's go!</button>
+
+  </div>
+
+  <script src="../js/script.js"></script>
+</body>
+</html>
