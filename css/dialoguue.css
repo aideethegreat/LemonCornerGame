@@ -1,0 +1,66 @@
+/* ================================
+   DIALOGUE SYSTEM
+   All styling for the dialogue box, portraits, typing text,
+   and the background dim/blur effect lives here — kept separate
+   from style.css so it's easy to find and edit on its own.
+   ================================ */
+
+/* Full-screen overlay: dims + blurs everything behind the dialogue box.
+   Hidden by default — dialogue.js adds .visible to show it. */
+#dialogue-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 50;
+}
+
+#dialogue-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* The dialogue box itself */
+#dialogue-box {
+  position: relative;
+  width: 60%;
+  cursor: pointer; /* clicking it advances/finishes the line, see dialogue.js */
+  transform: translateY(130px);
+}
+
+#dialogue-box img {
+  width: 100%;
+  bottom: -80px;
+}
+
+/* Character name, sits on the little ribbon tab top-left of the box */
+#dialogue-name {
+  position: absolute;
+  top: 28%;
+  left: 7%;
+  font-weight: bold;
+  font-size: 2rem;
+  color: #6b4a1f;
+  user-select: none;
+}
+
+/* The actual dialogue text */
+#dialogue-text {
+  position: absolute;
+  top: 40%;
+  left: 7%;
+  width: 80%;
+  font-size: 2rem;
+  line-height: 1.5;
+  color: #4a3b1f;
+  user-select: none;
+}

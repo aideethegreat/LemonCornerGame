@@ -1,0 +1,500 @@
+/* ================================
+   GLOBAL — applies to every page
+   ================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Comic Sans MS", "Comic Sans", cursive;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+/* ================================
+   PAGE TRANSITIONS — fade between screens
+   ================================ */
+body {
+  opacity: 0;
+  background-color: #000000;
+  transition: opacity 0.35s ease;
+
+  /* Also acts as the "letterbox" stage: centers the game canvas
+     and fills any leftover space with black bars, so the game
+     never stretches out of shape no matter the window size. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Added by script.js right after the page loads, fades it in */
+body.page-visible {
+  opacity: 1;
+}
+
+/* Added by script.js right before navigating away, fades it out */
+body.page-leaving {
+  opacity: 0;
+}
+
+/* Disable dragging on every image/asset, no exceptions */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ================================
+   GAME CANVAS — locks every screen to the same aspect ratio
+   (matches the background art: 1917 x 909)
+   Applied to #game-screen, #select-screen, #game-placeholder below.
+   ================================ */
+.game-canvas {
+  width: min(100vw, calc(100vh * 1917 / 909));
+  height: min(100vh, calc(100vw * 909 / 1917));
+}
+
+/* ================================
+   TITLE SCREEN (index.html)
+   ================================ */
+#game-screen {
+  background-image: url("../images/background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+#play-button-wrap {
+  position: absolute;
+  left: 21%;
+  top: 68%;
+  width: 15%;
+  animation: playPulse 1.8s ease-in-out infinite; /* gentle continuous loop */
+}
+
+@keyframes playPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+#play-button {
+  width: 100%;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+#play-button:hover {
+  transform: scale(1.08);
+}
+
+#play-button.pressed {
+  transform: scale(0.9);
+}
+
+/* Sparkle particles spawned on click (see script.js) */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  width: 10px;
+  height: 10px;
+  background: #ffe066;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 2px rgba(255, 224, 102, 0.8);
+  animation: particleBurst 0.6s ease-out forwards;
+  z-index: 999;
+}
+
+@keyframes particleBurst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ================================
+   CHARACTER SELECT (character-select.html)
+   ================================ */
+#select-screen {
+  /* PLACEHOLDER: once you send a background image, save it as
+     images/character-select-bg.png and it'll show automatically.
+     Until then, this just falls back to the gradient below. */
+  background-image:
+    url("../images/character-select-bg.png"),
+    linear-gradient(to bottom, #cdeafd, #fdf6e3);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+#select-screen h1 {
+  color: #6b5a2a;
+  font-size: 2.6rem;
+  margin: 30px 0 16px;
+}
+
+#player-name {
+  padding: 18px 28px;
+  font-size: 1.5rem;
+  border: 3px solid #f4c94f;
+  border-radius: 40px;
+  outline: none;
+  width: 380px;
+  text-align: center;
+  background: #fffdf5;
+}
+
+#character-options {
+  display: flex;
+  gap: 50px;
+  margin: 40px 0;
+}
+
+.character-card {
+  cursor: pointer;
+  border-radius: 16px;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.character-card img {
+  width: 240px;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+}
+
+.character-card:hover {
+  transform: scale(1.05);
+}
+
+.character-card.selected {
+  box-shadow: 0 0 0 5px #f4c94f;
+  transform: scale(1.05);
+}
+
+#confirm-button {
+  padding: 18px 50px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6b5a2a;
+  background: #f4c94f;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+#confirm-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#confirm-button:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
+#confirm-button.pressed {
+  transform: scale(0.92);
+}
+
+#back-button {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  padding: 12px 26px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #ffffff;
+  background: #e8583c;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+#back-button:hover {
+  background: #d64a30;
+  transform: scale(1.06);
+}
+
+/* PLACEHOLDER: hidden until images/back-button.png actually exists.
+   script.js checks if the file loads, and if it does, swaps to image mode. */
+#back-button img {
+  display: none;
+  width: 160px;
+}
+
+/* Once the image is confirmed loaded, script.js adds this class:
+   the pill styling disappears and only the PNG shows */
+#back-button.has-image {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+#back-button.has-image #back-button-text {
+  display: none;
+}
+
+#back-button.has-image img {
+  display: block;
+}
+
+#back-button.pressed {
+  transform: scale(0.92);
+}
+
+/* ================================
+   GAME PLACEHOLDER (game.html)
+   ================================ */
+#game-placeholder {
+  background-image: url("../images/game-background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ================================
+   GAME SCREEN UI — menu, trivia, lemon stock, coins, shop
+   All start as simple placeholder shapes/text. The moment you drop
+   the matching PNG into /images with the exact filename referenced
+   in game.html, script.js auto-detects it and swaps it in — no
+   code changes needed. Feel free to move/resize anything below,
+   these are just starting positions. ✏️
+   ================================ */
+
+/* top-left stack */
+#top-left-buttons {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+/* shared placeholder look for menu/trivia/shop buttons before their PNG exists */
+.icon-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 14px;
+  border: none;
+  background: #fffdf5;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #6b5a2a;
+  transition: transform 0.15s ease;
+  position: relative;
+}
+
+.icon-button:hover {
+  transform: scale(1.07);
+}
+
+.icon-button.pressed {
+  transform: scale(0.9);
+}
+
+.icon-button img {
+  display: none; /* hidden until the real PNG is confirmed to exist */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* once script.js confirms the PNG loaded, it adds this class */
+.icon-button.has-image {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.icon-button.has-image .fallback-text {
+  display: none;
+}
+
+.icon-button.has-image img {
+  display: block;
+}
+
+/* top-right: stats row + shop button below it */
+#top-right-area {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  z-index: 10;
+}
+
+#top-right-stats {
+  display: flex;
+  gap: 12px;
+}
+
+/* lemon stock / coins pill: image with a number layered on top.
+   Shared styling lives here — width is set separately per element below,
+   so you can size each one independently. */
+.stat-display {
+  position: relative;
+  background: #fffdf5;
+  border-radius: 30px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ↓ Adjust each one's width independently here */
+#lemon-stock-display {
+  width: 200px;
+}
+
+#coins-display {
+  width: 220px;
+}
+
+.stat-display img {
+  display: none; /* hidden until the real PNG is confirmed to exist */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto; /* keeps the image's real shape — no squishing, no empty space */
+}
+
+.stat-display.has-image {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.stat-display.has-image img {
+  display: block;
+  position: static; /* once it's the real image, let it set the box's size naturally */
+}
+
+/* the actual live number/text, always on top of whichever background shows */
+.stat-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #6b5a2a;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#game-placeholder h1 {
+  font-size: 2rem;
+}
+
+#game-placeholder p {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+/* ================================
+   LEMONADE STAND ITEMS — pitcher, cups, lemon design
+   Bottom-left of the screen. Each has its own position/size below,
+   so you can move/resize them independently. Stack order (z-index)
+   is set so pitcher sits in back, cups on top of it, lemon design
+   in front of everything.
+   ================================ */
+.stand-item {
+  position: absolute;
+  user-select: none;
+}
+
+#table-decor {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  z-index: 2; /* furthest back — sits below the pitcher */
+  pointer-events: none;
+}
+
+#pitcher-btn {
+  right: 230px;
+  bottom: 90px;
+  width: 350px;
+  z-index: 2; /* sits on top of the table */
+}
+
+#cups-btn {
+  right: 200px;
+  bottom: 45px;
+  width: 140px;
+  z-index: 2; /* sits in front of the pitcher */
+}
+
+#lemonfront-decor {
+  right: 80px;
+  bottom: -20px;
+  width: 340px;
+  z-index: 3; /* frontmost — just decoration, not clickable */
+  pointer-events: none;
+}
+
+/* Cute white glow + gentle grow on hover, for anything clickable in the scene */
+.clickable-item {
+  cursor: pointer;
+  transition:
+    filter 0.2s ease,
+    transform 0.15s ease;
+  filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+}
+
+.clickable-item:hover {
+  transform: scale(1.04);
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9));
+}
+
+.clickable-item.pressed {
+  transform: scale(0.93);
+}

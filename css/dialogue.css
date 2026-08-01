@@ -1,0 +1,196 @@
+/* ================================
+   DIALOGUE SYSTEM
+   All styling for the dialogue box, portraits, typing text,
+   and the background dim/blur effect lives here — kept separate
+   from style.css so it's easy to find and edit on its own.
+   ================================ */
+
+/* Full-screen overlay: dims + blurs everything behind the dialogue box.
+   Hidden by default — dialogue.js adds .visible to show it. */
+#dialogue-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 50;
+}
+
+#dialogue-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* The dialogue box itself — sits flush at the bottom of the screen. */
+#dialogue-box {
+  position: relative;
+  width: 60%;
+  cursor: pointer; /* clicking it advances/finishes the line, see dialogue.js */
+  transform: translateY(130px);
+}
+
+#dialogue-box img {
+  width: 100%;
+  bottom: -80px;
+}
+
+/* Character name, sits on the little ribbon tab top-left of the box */
+#dialogue-name {
+  position: absolute;
+  top: 28%;
+  left: 8%;
+  font-weight: bold;
+  font-size: 2rem;
+  color: #6b4a1f;
+  user-select: none;
+}
+
+/* The actual dialogue text */
+#dialogue-text {
+  position: absolute;
+  top: 48%;
+  left: 7%;
+  width: 85%;
+  font-size: 2rem;
+  line-height: 1.5;
+  color: #4a3b1f;
+  user-select: none;
+}
+
+/* Speaker portrait — sits just above the box, hidden until a line
+   supplies one (see dialogue.js renderLine). This side of the box has
+   plenty of open space (the scene above), unlike below it where the
+   canvas edge clips anything that goes too far down. */
+#dialogue-portrait {
+  position: fixed;
+  left: 20%;
+  bottom: 23%;
+  height: 600px;
+  width: auto;
+  display: none;
+  pointer-events: none;
+  user-select: none;
+  z-index: -5;
+  transform-origin: bottom center;
+}
+
+/* One-shot, very subtle "nudge" played once whenever a new
+   expression/line comes in, then the portrait sits still — no looping,
+   no opacity/fade involved, transform only. dialogue.js adds the
+   matching reaction-<name> class based on the portrait's filename
+   (e.g. ".../finn/happy.png" -> reaction-happy) and restarts it fresh
+   on every line so it plays again even if the same expression repeats
+   back to back. */
+
+#dialogue-portrait.reaction-excited {
+  animation: react-excited 0.3s ease-out;
+}
+@keyframes react-excited {
+  0% {
+    transform: scale(1.015);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+#dialogue-portrait.reaction-happy {
+  animation: react-happy 0.4s ease-out;
+}
+@keyframes react-happy {
+  0% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+#dialogue-portrait.reaction-encourage {
+  animation: react-encourage 0.35s ease-out;
+}
+@keyframes react-encourage {
+  0% {
+    transform: rotate(1.2deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+#dialogue-portrait.reaction-surprised {
+  animation: react-surprised 0.25s ease-out;
+}
+@keyframes react-surprised {
+  0% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+#dialogue-portrait.reaction-worried {
+  animation: react-worried 0.4s ease-out;
+}
+@keyframes react-worried {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1.5px);
+  }
+  50% {
+    transform: translateX(1.5px);
+  }
+  75% {
+    transform: translateX(-1px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+#dialogue-portrait.reaction-thinking {
+  animation: react-thinking 0.45s ease-out;
+}
+@keyframes react-thinking {
+  0% {
+    transform: rotate(-1.5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+#dialogue-portrait.reaction-neutral {
+  animation: react-neutral 0.3s ease-out;
+}
+@keyframes react-neutral {
+  0% {
+    transform: scale(1.006);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+#dialogue-portrait.reaction-question {
+  animation: react-question 0.35s ease-out;
+}
+@keyframes react-question {
+  0% {
+    transform: rotate(1.5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
